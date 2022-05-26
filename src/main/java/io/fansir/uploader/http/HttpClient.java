@@ -3,12 +3,12 @@ package io.fansir.uploader.http;
 import com.google.gson.Gson;
 import io.fansir.uploader.util.Utils;
 import kotlin.Pair;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -20,7 +20,7 @@ public class HttpClient {
 
     private static OkHttpClient                                               client;
     private static Gson                                                       gson;
-    private String                                                            url;
+    private final String                                                            url;
     private Map<String,Object>                                                params;
     private Map<String, Pair<File, ProgressListener>> files;
     private int method = 0;//0:post 1:put 3:get
@@ -101,8 +101,8 @@ public class HttpClient {
         FileOutputStream fos = null;
 
         try {
-            is = response.body().byteStream();
-            long total = response.body().contentLength();
+            is = Objects.requireNonNull(response.body()).byteStream();
+            long total = Objects.requireNonNull(response.body()).contentLength();
             fos = new FileOutputStream(file);
 
             int len;
@@ -118,11 +118,11 @@ public class HttpClient {
             fos.flush();
             filePath = file.getAbsolutePath();
         } catch (Exception var14) {
-            new RuntimeException(var14);
+            new Exception(var14);
         } finally {
-            Utils.closeIO(new Closeable[]{is, fos});
-            return filePath;
+            Utils.closeIO(is, fos);
         }
+        return filePath;
     }
 
     public void download(File file){
@@ -168,11 +168,11 @@ public class HttpClient {
         }
 
         Response response = null;
-        T t = null;
+        T t;
         try {
             response = client.newCall(builder.build()).execute();
             if (response.isSuccessful()){
-                String uploadResult = response.body().string();
+                String uploadResult = Objects.requireNonNull(response.body()).string();
                 Utils.info(uploadResult);
                 Utils.info("result:"+uploadResult);
                 t = gson.fromJson(uploadResult, clazz);
@@ -186,8 +186,8 @@ public class HttpClient {
             if (response != null){
                 response.close();
             }
-            return t;
         }
+        return t;
     }
 
 

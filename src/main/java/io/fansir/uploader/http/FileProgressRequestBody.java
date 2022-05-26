@@ -44,7 +44,7 @@ public class FileProgressRequestBody extends RequestBody {
             long total = 0;
             long read;
 
-            while ((read = source.read(sink.buffer(), SEGMENT_SIZE)) != -1) {
+            while ((read = source.read(sink.getBuffer(), SEGMENT_SIZE)) != -1) {
                 total += read;
                 sink.flush();
                 String percent = String.format("%.2f",total * 100.0f / fileSize);

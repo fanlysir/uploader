@@ -7,11 +7,11 @@ import io.fansir.uploader.util.Utils
 
 class AutoUploadPgy(
     private val apiKey : String,
-    private val uploadUrl : String = "https://www.pgyer.com/apiv2/app/upload",
+    private val uploadUrl : String,
 ) : IAutoUpload<String> {
-    override fun uploadApk(apkInfo: ApkInfo): Result<String> {
+    override fun upload(apkInfo: ApkInfo): Result<String> {
         apkInfo.checkApkFile()
-        val changeLog = if (Utils.isEmpty(apkInfo.changeLog)) "发现了新版本，请去升级一下吧~" else apkInfo.changeLog
+        Utils.info("开始上传文件到蒲公英：${apkInfo.apkFile.absolutePath}")
         val pgyApkInfo : PgyApkInfo? = HttpClient(uploadUrl)
             .addParams("_api_key",apiKey)
             .addFile("file",apkInfo.apkFile){ percent->
@@ -21,7 +21,7 @@ class AutoUploadPgy(
                 }
             }
             .addParams("buildInstallType","1")
-            .addParams("buildUpdateDescription",changeLog)
+            .addParams("buildUpdateDescription",apkInfo.changeLog)
             .start(PgyApkInfo::class.java)
         return if (pgyApkInfo?.code == 0){
             Result.success(pgyApkInfo.data?.fullUrl?:"")
@@ -31,3 +31,11 @@ class AutoUploadPgy(
         }
     }
 }
+
+/**
+ * 发布到蒲公英
+ */
+fun ApkInfo.uploadPgy(
+    apiKey : String,
+    uploadUrl : String = "https://www.pgyer.com/apiv2/app/upload",
+) : Result<String> = AutoUploadPgy(apiKey = apiKey,uploadUrl = uploadUrl).upload(this)
