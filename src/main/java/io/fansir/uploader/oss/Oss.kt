@@ -11,7 +11,6 @@ import java.util.*
 
 object Oss {
 
-
     fun uploadFile(config: OssConfig, dirName: String, file: File, success: (String) -> Unit) {
         if (!file.exists()) {
             Utils.stopTask("上传文件不存在：${file.absolutePath}")
